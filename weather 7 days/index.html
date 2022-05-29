@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+    <script src="https://kit.fontawesome.com/a27379da93.js" crossorigin="anonymous"></script>
+    <style>
+        body{
+            background-image: url(https://wallpapercave.com/wp/Z4CD0Ic.jpg);
+        }
+        #heading{
+            text-align: center;
+            font-size:30px;
+        }
+        #container{
+            display:flex;
+            justify-content: space-around;
+            font-family:epilogue;
+            line-height: 10px;
+        }
+        #container>div{
+            width:500px
+        }
+       
+        #city{
+            margin-left:38%;
+            height:30px;
+            width: 20%;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        button{
+            height:30px;
+            width: 80px;
+            background-color: skyblue;
+            color:white ;
+        }
+        .singleLine{
+            display: flex;
+        }
+       
+        #temperature{
+           
+            margin-left: 20px;
+        }
+        #nameDiv{
+            display:flex;
+        }
+        #nameDiv>h3{
+            padding-left: 10px;
+        }
+        span{
+           font-size: 25px;
+           padding-top:10px
+        }
+        #smallbox{
+            background-image: url(https://imgs.search.brave.com/o82pAuJ2Ozy3oEM9aA4AXhK_SUJW7F2YeTQvZNBtC24/rs:fit:474:225:1/g:ce/aHR0cHM6Ly90c2Uy/Lm1tLmJpbmcubmV0/L3RoP2lkPU9JUC4z/RUJNZkRWaTNPelh0/b0ZqZ2pic1N3SGFI/YSZwaWQ9QXBp);
+            
+        }
+        #forecast{
+            display: grid;
+            grid-template-columns: repeat(7,160px);
+            grid-template-rows: 200px;
+            justify-content: center;
+            gap:10px;
+            margin-top:40px;
+            color: black;
+        }
+        #forecast>div{
+            border:1px solid black;
+            text-align:center;
+            border-radius: 5px;;
+            background-color: rgb(136, 138, 143);
+            color:black;
+            font-size: 20px;
+            font-weight: bold;
+        }
+       
+    </style>
+</head>
+<body>
+    <h2 id="heading">Mausam.com</h2>
+    <input type="text" id="city">
+    <button onClick="getWeather()">Search</button>
+    <div id="container">
+      
+    </div>
+    <div id="forecast"></div>
+</body>
+</html>
+<script>
+    async function getWeather(){
+        try{
+            let city = document.getElementById("city").value;
+            let res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=b2a3bbf69ffcb76452d0299500675dff&units=metric`)
+            let data = await res.json();
+            appendData(data);
+            console.log("data:",data)
+            var longitude = data.coord.lon;
+            var latitude = data.coord.lat;
+        }
+        catch(err){
+           console.log("err:",err); 
+        }
+        try{
+            let res2 = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=&appid=b2a3bbf69ffcb76452d0299500675dff&units=metric`)
+            let data2 = await res2.json();
+            forecastData(data2.daily);
+            console.log("data:",data2)
+        }
+        catch(err){
+           console.log("err:",err); 
+        }
+    }
+    function appendData(data){
+        document.querySelector("#container").innerHTML="";
+        let mainDiv1 = document.createElement("div");
+        mainDiv1.setAttribute("id","detail")
+        
+        let nameDiv= document.createElement("div");
+        nameDiv.setAttribute("id","nameDiv")
+        let logo=document.createElement("span");
+        logo.setAttribute("class","fa-solid fa-location-dot")
+        let name = document.createElement("h3");
+        name.textContent= data.name;
+        nameDiv.append(logo,name)
+
+        let temp = document.createElement("h3"); 
+        temp.textContent="Temperature:";
+        
+        let div1 = document.createElement("div"); 
+        div1.setAttribute("id","temperature")
+        let min_temp = document.createElement("h3")
+        min_temp.textContent = "Min: "+data.main.temp_min+" °C";
+        let max_temp = document.createElement("h3")
+        max_temp.textContent = "Max: "+data.main.temp_max+" °C";
+        div1.append(min_temp,max_temp)
+        
+        let wind = document.createElement("h3");
+        wind.textContent = "Wind: "+data.wind.speed+" m/s";
+        // wind.setAttribute("class","fa-solid fa-wind")
+
+        let clouds = document.createElement("h3");
+        clouds.textContent = "  Cloud cover: "+data.clouds.all+"%";
+        
+        
+        let div2 = document.createElement("div");
+        div2.setAttribute("id","mapShow")
+        let iframe = document.createElement("iframe");
+        iframe.src=`https://maps.google.com/maps?q=${data.name}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+        iframe.height=`250px`;
+        iframe.width=`250px`;
+        
+
+        let Sunrise = document.createElement("h3");
+        Sunrise.textContent = "Sunrise: "+data.sys.sunrise;
+
+        let Sunset = document.createElement("h3");
+        Sunset.textContent = "Sunset: "+data.sys.sunset;
+
+        mainDiv1.append(nameDiv,temp,div1,wind,clouds,Sunrise,Sunset);
+        div2.append(iframe);
+        document.querySelector("#container").append(mainDiv1,div2);
+    }
+    
+    var week=["Fri","Sat","Sun","Mon","Tue","Wed","Thu"]
+    function forecastData(fore){
+        document.getElementById("forecast").innerHTML=null;
+
+        fore.map(function(elem,index){
+         if(index==7)
+         {return;}
+        let box =document.createElement("div");
+        box.setAttribute("id","smallbox")
+        let we = document.createElement("p");
+        we.textContent=week[index];
+        
+        let logo=document.createElement("i")
+        
+        logo.style.fontSize="20px";
+        let min = document.createElement("p")
+        min.textContent=elem.temp.min+" °C";
+          if(elem.temp.min<20 ){
+            logo.setAttribute("class","fa-solid fa-cloud-rain")
+          }else{
+            logo.setAttribute("class","fa-solid fa-cloud-sun")
+          }
+        let max = document.createElement("p")
+        max.textContent=elem.temp.max+" °C";
+
+        box.append(we,logo,max,min);
+        document.getElementById("forecast").append(box);
+        })
+    }
+
+
+    
+</script>
